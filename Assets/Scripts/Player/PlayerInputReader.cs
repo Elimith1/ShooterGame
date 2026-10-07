@@ -1,16 +1,30 @@
 using UnityEngine;
+using UnityEngine.InputSystem;
 
-public class PlayerInputReader : MonoBehaviour
+namespace Player
 {
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
+    public class PlayerInputReader : MonoBehaviour
     {
-        
-    }
+        public Vector2 MoveInput { get; private set; }
+        public bool JumpTriggered { get; private set; }
 
-    // Update is called once per frame
-    void Update()
-    {
-        
+        public void OnMove(InputAction.CallbackContext context)
+        {
+            MoveInput = context.ReadValue<Vector2>();
+        }
+
+        public void OnJump(InputAction.CallbackContext context)
+        {
+            if (context.performed)
+            {
+                JumpTriggered = true;
+                Debug.Log("[Input] Saut déclenché !");
+            }
+        }
+
+        public void ResetJumpTrigger()
+        {
+            JumpTriggered = false;
+        }
     }
 }
