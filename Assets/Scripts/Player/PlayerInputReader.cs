@@ -5,26 +5,43 @@ namespace Player
 {
     public class PlayerInputReader : MonoBehaviour
     {
-        public Vector2 MoveInput { get; private set; }
-        public bool JumpTriggered { get; private set; }
+        private InputAction moveAction;
+        private InputAction jumpAction;
+        private InputAction fireAction;
+        private InputAction missileAction;
 
-        public void OnMove(InputAction.CallbackContext context)
+        private Vector2 moveValue;
+        private bool jumpTriggered;
+        private bool isFiring;
+        private bool isMissileTriggered;
+
+        public Vector2 MoveInput => moveValue;
+        public bool JumpTriggered => jumpTriggered;
+        public bool IsFiring => isFiring;
+        public bool IsMissileTriggered => isMissileTriggered;
+
+        private void Start()
         {
-            MoveInput = context.ReadValue<Vector2>();
+            moveAction = InputSystem.actions.FindAction("Move");
+            jumpAction = InputSystem.actions.FindAction("Jump");
+            fireAction = InputSystem.actions.FindAction("Fire");
+            missileAction = InputSystem.actions.FindAction("Missile");
         }
 
-        public void OnJump(InputAction.CallbackContext context)
+        private void Update()
         {
-            if (context.performed)
-            {
-                JumpTriggered = true;
-                Debug.Log("[Input] Saut déclenché !");
-            }
+            if (moveAction != null) moveValue = moveAction.ReadValue<Vector2>();
+
+            if (jumpAction != null && jumpAction.triggered) jumpTriggered = true;
+
+            // Tir continu tant que le bouton reste enfoncé
+            if (fireAction != null) isFiring = fireAction.IsPressed();
+
+            // Pression unique pour le missile
+            if (missileAction != null && missileAction.triggered) isMissileTriggered = true;
         }
 
-        public void ResetJumpTrigger()
-        {
-            JumpTriggered = false;
-        }
+        public void ResetJumpTrigger() => jumpTriggered = false;
+        public void ResetMissileTrigger() => isMissileTriggered = false;
     }
 }

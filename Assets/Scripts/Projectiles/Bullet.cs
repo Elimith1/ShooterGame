@@ -1,0 +1,39 @@
+using UnityEngine;
+
+namespace Player
+{
+    [RequireComponent(typeof(Rigidbody))]
+    public class Bullet : MonoBehaviour
+    {
+        [SerializeField] private float speed = 80f;
+        [SerializeField] private float lifeTime = 5f;
+
+        private Rigidbody _rigidBody;
+        private float _lifeTimer;
+
+        private void Awake()
+        {
+            _rigidBody = GetComponent<Rigidbody>();
+        }
+
+        private void OnEnable()
+        {
+            _lifeTimer = 0f;
+
+            if (_rigidBody != null)
+            {
+                _rigidBody.linearVelocity = transform.forward * speed;
+            }
+        }
+
+        private void Update()
+        {
+            _lifeTimer += Time.deltaTime;
+
+            if (_lifeTimer >= lifeTime)
+            {
+                gameObject.SetActive(false);
+            }
+        }
+    }
+}

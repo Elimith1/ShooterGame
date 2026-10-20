@@ -1,16 +1,28 @@
+using Core;
 using UnityEngine;
 
-public class PlayerContactCombat : MonoBehaviour
+namespace Player
 {
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
+    public class PlayerContactCombat : MonoBehaviour
     {
-        
-    }
+        [SerializeField] private Health playerHealth;
 
-    // Update is called once per frame
-    void Update()
-    {
-        
+        private void OnTriggerEnter(Collider otherCollider)
+        {
+            if (!otherCollider.CompareTag("Enemy")) return;
+
+            Health enemyHealth = otherCollider.GetComponent<Health>();
+            if (enemyHealth != null)
+            {
+                enemyHealth.TakeDamage(new DamageInfo(999, otherCollider.transform.position, Vector3.up, gameObject));
+            }
+
+            bool isStompDetector = gameObject.name.Contains("StompDetector");
+
+            if (!isStompDetector && playerHealth != null)
+            {
+                playerHealth.TakeDamage(new DamageInfo(1, transform.position, Vector3.up, otherCollider.gameObject));
+            }
+        }
     }
 }

@@ -255,7 +255,7 @@ Transform:
   m_GameObject: {fileID: 282840810}
   serializedVersion: 2
   m_LocalRotation: {x: 0.25666788, y: -0.00000042545418, z: 0.00000011298547, w: 0.9664997}
-  m_LocalPosition: {x: 0, y: -54.006363, z: -35}
+  m_LocalPosition: {x: 0, y: -55.15, z: -35}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -873,6 +873,12 @@ Transform:
   - {fileID: 6346663253708157671}
   m_Father: {fileID: 8276744466394404666}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!4 &1055462986 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 7576668861397902694, guid: 877472fa33199229d843b6a0532b15d6,
+    type: 3}
+  m_PrefabInstance: {fileID: 2575169873416332049}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &1373586541
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1423,7 +1429,7 @@ Transform:
   m_GameObject: {fileID: 1763327187}
   serializedVersion: 2
   m_LocalRotation: {x: 0.25666788, y: -0.00000042545415, z: 0.00000011298546, w: 0.9664997}
-  m_LocalPosition: {x: 0, y: -54.006363, z: -35}
+  m_LocalPosition: {x: 0, y: -55.15, z: -35}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -2770,7 +2776,7 @@ PrefabInstance:
     - target: {fileID: 4256181489601650395, guid: 877472fa33199229d843b6a0532b15d6,
         type: 3}
       propertyPath: m_LocalPosition.y
-      value: -74.00636
+      value: -75.15
       objectReference: {fileID: 0}
     - target: {fileID: 4256181489601650395, guid: 877472fa33199229d843b6a0532b15d6,
         type: 3}
@@ -2814,13 +2820,23 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7544229383097937069, guid: 877472fa33199229d843b6a0532b15d6,
         type: 3}
+      propertyPath: m_Enabled
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7544229383097937069, guid: 877472fa33199229d843b6a0532b15d6,
+        type: 3}
       propertyPath: m_DefaultActionMap
-      value: Player
+      value: 
+      objectReference: {fileID: 0}
+    - target: {fileID: 7544229383097937069, guid: 877472fa33199229d843b6a0532b15d6,
+        type: 3}
+      propertyPath: m_NotificationBehavior
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7544229383097937069, guid: 877472fa33199229d843b6a0532b15d6,
         type: 3}
       propertyPath: m_ActionEvents.Array.size
-      value: 21
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7544229383097937069, guid: 877472fa33199229d843b6a0532b15d6,
         type: 3}
@@ -3116,6 +3132,56 @@ PrefabInstance:
         type: 3}
       propertyPath: m_ActionEvents.Array.data[5].m_PersistentCalls.m_Calls.Array.data[0].m_Arguments.m_ObjectArgumentAssemblyTypeName
       value: UnityEngine.Object, UnityEngine
+      objectReference: {fileID: 0}
+    - target: {fileID: 7576668861397902694, guid: 877472fa33199229d843b6a0532b15d6,
+        type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7576668861397902694, guid: 877472fa33199229d843b6a0532b15d6,
+        type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7576668861397902694, guid: 877472fa33199229d843b6a0532b15d6,
+        type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7576668861397902694, guid: 877472fa33199229d843b6a0532b15d6,
+        type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 0.7071068
+      objectReference: {fileID: 0}
+    - target: {fileID: 7576668861397902694, guid: 877472fa33199229d843b6a0532b15d6,
+        type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0.7071068
+      objectReference: {fileID: 0}
+    - target: {fileID: 7576668861397902694, guid: 877472fa33199229d843b6a0532b15d6,
+        type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7576668861397902694, guid: 877472fa33199229d843b6a0532b15d6,
+        type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7576668861397902694, guid: 877472fa33199229d843b6a0532b15d6,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 90
+      objectReference: {fileID: 0}
+    - target: {fileID: 7576668861397902694, guid: 877472fa33199229d843b6a0532b15d6,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7576668861397902694, guid: 877472fa33199229d843b6a0532b15d6,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8485713699407132685, guid: 877472fa33199229d843b6a0532b15d6,
         type: 3}
@@ -5789,6 +5855,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: dbb2435a561143425ba96e1de548f695, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Health
+  initialHealth: 10
+  invulnerabilityDuration: 0.5
+  canExceedInitial: 1
+  OnHealthChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  OnDeath:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!114 &9032984201508772100
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5825,6 +5900,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cc6158512925a3e3e8ef8ee6cbb1c223, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerCombat
+  firePoint: {fileID: 1055462986}
+  inputReader: {fileID: 0}
+  bulletPrefab: {fileID: 4167685250507571585, guid: df53882442c4ee24d9e5d30ab81a8f14,
+    type: 3}
+  fireRate: 0.15
+  missilePrefab: {fileID: 2525046337550401708, guid: a786bd07750c5384f844eaf9aa93f6b5,
+    type: 3}
+  missileCooldown: 1.5
 --- !u!114 &9032984201508772103
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5855,7 +5938,7 @@ MonoBehaviour:
   gravity: -25
   groundedGravity: -2
   controller: {fileID: 0}
-  cameraTransform: {fileID: 0}
+  cameraTransform: {fileID: 282840814}
   inputReader: {fileID: 0}
 --- !u!23 &9064911472353745169
 MeshRenderer:

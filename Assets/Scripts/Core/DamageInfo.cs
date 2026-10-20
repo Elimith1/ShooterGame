@@ -1,16 +1,20 @@
 using UnityEngine;
 
-public class DamageInfo : MonoBehaviour
+namespace Core
 {
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
+    public struct DamageInfo
     {
-        
-    }
+        public int Amount { get; private set; }
+        public Vector3 HitPoint { get; private set; }
+        public Vector3 HitNormal { get; private set; }
+        public GameObject Attacker { get; private set; }
 
-    // Update is called once per frame
-    void Update()
-    {
-        
+        public DamageInfo(int amount, Vector3 hitPoint = default, Vector3 hitNormal = default, GameObject attacker = null)
+        {
+            Amount = amount;
+            HitPoint = hitPoint;
+            HitNormal = hitNormal;
+            Attacker = attacker;
+        }
     }
 }

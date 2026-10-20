@@ -28,7 +28,6 @@ namespace Player
 
         private void Update()
         {
-
             HandleMovement();
         }
 
@@ -41,39 +40,47 @@ namespace Player
                 _verticalVelocity = groundedGravity;
             }
 
-            // Calcul du déplacement horizontal
+            // Récupération du Vector2 mis à jour dans PlayerInputReader
             Vector2 input = inputReader.MoveInput;
+
+            // Calcul du déplacement selon la caméra
             Vector3 forward = cameraTransform.forward;
             Vector3 right = cameraTransform.right;
-
             forward.y = 0f;
             right.y = 0f;
             forward.Normalize();
             right.Normalize();
 
-            Vector3 moveDirection = (forward * input.y + right * input.x).normalized;
+            Vector3 moveDirection = forward * input.y + right * input.x;
+
+            if (moveDirection.magnitude > 1f)
+            {
+                moveDirection.Normalize();
+            }
+
+            // Application du mouvement horizontal selon la direction calculée
             controller.Move(moveDirection * (moveSpeed * Time.deltaTime));
 
-            // Rotation
+            // Rotation du joueur dans la direction du mouvement
             if (moveDirection.sqrMagnitude > 0.01f)
             {
                 Quaternion targetRotation = Quaternion.LookRotation(moveDirection);
                 transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, rotationSpeed * Time.deltaTime);
             }
 
-            // Gestion du saut
+            // 3. Gestion du saut
             if (inputReader.JumpTriggered)
             {
                 if (isGrounded)
                 {
-                    // V = sqrt(2 * hauteur * -gravite)
                     _verticalVelocity = Mathf.Sqrt(2f * jumpHeight * -gravity);
                 }
                 
+                // On réinitialise l'état du saut
                 inputReader.ResetJumpTrigger();
             }
 
-            // Gravité et déplacement vertical
+            // Application de la gravité et mouvement vertical
             _verticalVelocity += gravity * Time.deltaTime;
             controller.Move(new Vector3(0f, _verticalVelocity, 0f) * Time.deltaTime);
         }

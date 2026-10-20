@@ -1,16 +1,7 @@
-using UnityEngine;
-
-public class IDamageable : MonoBehaviour
+namespace Core
 {
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
+    public interface IDamageable
     {
-        
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
+        void TakeDamage(DamageInfo damageInfo);
     }
 }
