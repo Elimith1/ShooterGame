@@ -35,5 +35,13 @@ namespace Player
                 gameObject.SetActive(false);
             }
         }
+
+        private void OnTriggerEnter(Collider otherCollider)
+        {
+            // Ignorer le joueur
+            if (otherCollider.CompareTag("Player")) return;
+
+            gameObject.SetActive(false);
+        }
     }
 }
