@@ -7,7 +7,6 @@ namespace Core
         [Header("Settings")]
         [SerializeField] private int initialHealth = 10;
         [SerializeField] private float invulnerabilityDuration = 0.5f;
-        [SerializeField] private bool canExceedInitial = true;
 
         public int CurrentHealth { get; private set; }
         private float _lastDamageTime = -999f;
@@ -35,11 +34,6 @@ namespace Core
         public void Heal(int amount)
         {
             CurrentHealth += amount;
-
-            if (!canExceedInitial && CurrentHealth > initialHealth)
-            {
-                CurrentHealth = initialHealth;
-            }
         }
 
         private void Die()

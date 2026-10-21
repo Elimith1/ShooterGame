@@ -55,7 +55,7 @@ SphereCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Radius: 47.56
+  m_Radius: 8
   m_Center: {x: 0, y: 0, z: 0}
 --- !u!54 &280434400047993643
 Rigidbody:
@@ -98,6 +98,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Missile
   speed: 80
   lifeTime: 4
+  spawnImmunityDuration: 0.1
+  explosionPrefab: {fileID: 100119664332363940, guid: 9ff5d5793e3786c44babfc05b5cd5088,
+    type: 3}
 --- !u!1 &5098802001916229027
 GameObject:
   m_ObjectHideFlags: 0

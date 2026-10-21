@@ -1,3 +1,4 @@
+using Core;
 using UnityEngine;
 
 namespace Player
@@ -7,6 +8,7 @@ namespace Player
     {
         [SerializeField] private float speed = 80f;
         [SerializeField] private float lifeTime = 5f;
+        [SerializeField] private int damageAmount = 1;
 
         private Rigidbody _rigidBody;
         private float _lifeTimer;
@@ -38,9 +40,20 @@ namespace Player
 
         private void OnTriggerEnter(Collider otherCollider)
         {
-            // Ignorer le joueur
+            //Ignorer le Joueur
             if (otherCollider.CompareTag("Player")) return;
 
+            // Ignorer les autres Balles
+            if (otherCollider.CompareTag("Bullet")) return;
+
+           // Appliquer les dégâts aux ennemis / cibles
+            Health targetHealth = otherCollider.GetComponent<Health>();
+            if (targetHealth != null)
+            {
+                DamageInfo damage = new DamageInfo(damageAmount, transform.position, transform.forward, gameObject);
+                targetHealth.TakeDamage(damage);
+            }
+            // Désactiver la balle au choc
             gameObject.SetActive(false);
         }
     }
