@@ -7,11 +7,12 @@ namespace Player
         [Header("References")]
         [SerializeField] private Transform firePoint;
         [SerializeField] private PlayerInputReader inputReader;
+        [SerializeField] private PlayerInventory playerInventory;
 
         [Header("Primary Fire")]
         [SerializeField] private GameObject bulletPrefab;
         [SerializeField] private float fireRate = 0.15f;
-        [SerializeField] private int bulletPoolSize = 30;
+        [SerializeField] private int bulletPoolSize = 90;
 
         [Header("Missiles")]
         [SerializeField] private GameObject missilePrefab;
@@ -32,6 +33,11 @@ namespace Player
             if (inputReader == null)
             {
                 inputReader = GetComponent<PlayerInputReader>();
+            }
+
+            if (playerInventory == null)
+            {
+                playerInventory = GetComponent<PlayerInventory>();
             }
 
             InitializeBulletPool();
@@ -92,6 +98,7 @@ namespace Player
             if (_multishotTimer <= 0f)
             {
                 _isMultishotActive = false;
+                _multishotTimer = 0f;
             }
         }
 
@@ -101,41 +108,53 @@ namespace Player
 
             if (firePoint == null || _bulletPool == null) return;
 
-            Vector3 rootForward = transform.root.forward;
-            Vector3 rootRight = transform.root.right;
+            // Rotation centrale basée sur la direction du joueur
+            Quaternion centerRotation = Quaternion.LookRotation(transform.root.forward);
 
-            SpawnBulletFromPool(firePoint.position, Quaternion.LookRotation(rootForward));
+            // 1. Tir central
+            SpawnBulletFromPool(firePoint.position, centerRotation);
 
+            // 2. Tirs latéraux si Multishot actif (-15° et +15°)
             if (_isMultishotActive)
             {
-                Vector3 leftDirection = (rootForward * 0.5f - rootRight * 0.5f).normalized;
-                Vector3 rightDirection = (rootForward * 0.5f + rootRight * 0.5f).normalized;
+                Quaternion leftRotation = centerRotation * Quaternion.Euler(0f, -15f, 0f);
+                Quaternion rightRotation = centerRotation * Quaternion.Euler(0f, 15f, 0f);
 
-                SpawnBulletFromPool(firePoint.position, Quaternion.LookRotation(leftDirection));
-                SpawnBulletFromPool(firePoint.position, Quaternion.LookRotation(rightDirection));
+                SpawnBulletFromPool(firePoint.position, leftRotation);
+                SpawnBulletFromPool(firePoint.position, rightRotation);
             }
         }
 
         private void FireMissile()
         {
+            if (playerInventory != null && !playerInventory.HasMissiles())
+            {
+                return;
+            }
+
             _nextMissileTime = Time.time + missileCooldown;
 
             if (firePoint == null || _missilePool == null) return;
 
-            Vector3 rootForward = transform.root.forward;
-            SpawnMissileFromPool(firePoint.position, Quaternion.LookRotation(rootForward));
+            if (playerInventory != null && !playerInventory.UseMissile())
+            {
+                return;
+            }
+
+            Quaternion missileRotation = Quaternion.LookRotation(transform.root.forward);
+            SpawnMissileFromPool(firePoint.position, missileRotation);
         }
 
         private void SpawnBulletFromPool(Vector3 spawnPosition, Quaternion spawnRotation)
         {
             for (int i = 0; i < _bulletPool.Length; i++)
             {
-                if (!_bulletPool[i].activeInHierarchy)
+                if (_bulletPool[i] != null && !_bulletPool[i].activeInHierarchy)
                 {
                     _bulletPool[i].transform.position = spawnPosition;
                     _bulletPool[i].transform.rotation = spawnRotation;
                     _bulletPool[i].SetActive(true);
-                    break;
+                    return;
                 }
             }
         }
@@ -144,19 +163,19 @@ namespace Player
         {
             for (int i = 0; i < _missilePool.Length; i++)
             {
-                if (!_missilePool[i].activeInHierarchy)
+                if (_missilePool[i] != null && !_missilePool[i].activeInHierarchy)
                 {
                     _missilePool[i].transform.position = spawnPosition;
                     _missilePool[i].transform.rotation = spawnRotation;
                     _missilePool[i].SetActive(true);
-                    break;
+                    return;
                 }
             }
         }
 
         public void ActivateMultishot(float duration)
         {
-            _multishotTimer = _isMultishotActive ? _multishotTimer + duration : duration;
+            _multishotTimer = duration;
             _isMultishotActive = true;
         }
     }
