@@ -46,7 +46,7 @@ namespace Player
             // Ignorer les autres Balles
             if (otherCollider.CompareTag("Bullet")) return;
 
-           // Appliquer les dégâts aux ennemis / cibles
+           // Appliquer les dégâts aux ennemis
             Health targetHealth = otherCollider.GetComponent<Health>();
             if (targetHealth != null)
             {

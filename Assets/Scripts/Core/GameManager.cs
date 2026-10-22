@@ -1,21 +1,20 @@
 using Pickups;
+using UI;
 using UnityEngine;
 
 namespace Core
 {
     public class GameManager : MonoBehaviour
     {
-        [Header("References")]
         [SerializeField] private CollectibleSpawner collectibleSpawner;
         
-        [Header("Debug Spawn Random")]
         [SerializeField] private float spawnRadius = 5f;
 
         private void Awake()
         {
             if (collectibleSpawner == null)
             {
-                collectibleSpawner = FindAnyObjectByType<CollectibleSpawner>();
+                collectibleSpawner = GetComponent<CollectibleSpawner>();
             }
         }
 
@@ -34,7 +33,6 @@ namespace Core
 
             if (player != null && collectibleSpawner != null)
             {
-                // Calcule un décalage aléatoire autour du joueur sur le plan XZ
                 Vector2 randomCircle = Random.insideUnitCircle * spawnRadius;
                 Vector3 randomPosition = player.transform.position + new Vector3(randomCircle.x, 0f, randomCircle.y);
 

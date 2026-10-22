@@ -1,96 +1,143 @@
+using System.Collections;
 using Core;
+using Player;
 using UnityEngine;
 
-namespace Player
+public class MissileExplosion : MonoBehaviour
 {
-    public class MissileExplosion : MonoBehaviour
+    [SerializeField] private ParticleSystem explosion;
+    [SerializeField] private GameObject missileBody;
+    
+    [Header("Sécurité Spawn")]
+    [SerializeField] private float spawnImmunityTime = 0.08f; // Immunité de 0.08s au lancement
+
+    private SphereCollider sphereCollider;
+    private bool isExploding;
+    private int damage;
+    private float enableTimer;
+
+    private void Awake()
     {
-        [Header("Dégâts de zone")]
-        [SerializeField] private int explosionDamage = 5;
-        [SerializeField] private float damageDuration = 0.15f;
-        [SerializeField] private SphereCollider explosionCollider;
+        isExploding = false;
+    }
 
-        [Header("Effet Visuel")]
-        [SerializeField] private ParticleSystem explosionParticles;
-
-        private float _timer;
-
-        private void Awake()
+    private void Start()
+    {
+        if (explosion != null)
         {
-            if (explosionCollider == null)
-            {
-                explosionCollider = GetComponent<SphereCollider>();
-            }
-
-            if (explosionParticles == null)
-            {
-                explosionParticles = GetComponentInChildren<ParticleSystem>();
-            }
+            sphereCollider = explosion.gameObject.GetComponent<SphereCollider>();
         }
 
-        private void OnEnable()
+        Missile parentMissile = GetComponentInParent<Missile>();
+        if (parentMissile != null)
         {
-            _timer = 0f;
+            damage = parentMissile.GetDamage();
+        }
+    }
 
-            // 1. Activer le collider de dégâts au départ
-            if (explosionCollider != null)
-            {
-                explosionCollider.isTrigger = true;
-                explosionCollider.enabled = true;
-            }
+    private void OnEnable()
+    {
+        isExploding = false;
+        enableTimer = 0f; // Réinitialise le timer à l'activation
 
-            // 2. Forcer le système de particules à rejouer depuis le début
-            if (explosionParticles != null)
-            {
-                explosionParticles.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
-                explosionParticles.Play(true);
-            }
+        if (missileBody != null)
+        {
+            missileBody.SetActive(true);
         }
 
-        private void Update()
+        if (sphereCollider != null)
         {
-            _lifeTimer();
+            sphereCollider.enabled = false;
+        }
+    }
+
+    private void Update()
+    {
+        // Incrémente le timer d'immunité du spawn
+        enableTimer += Time.deltaTime;
+    }
+
+    private void OnCollisionEnter(Collision collision)
+    {
+        // Ignore toute collision pendant la première fraction de seconde après le tir
+        if (enableTimer < spawnImmunityTime) return;
+
+        if (collision.gameObject.CompareTag("Player") || collision.gameObject.layer == LayerMask.NameToLayer("Player"))
+        {
+            return;
         }
 
-        private void _lifeTimer()
+        if (!isExploding)
         {
-            _timer += Time.deltaTime;
+            ExecuteExplosion();
+        }
+    }
 
-            // Coupe les dégâts après une fraction de seconde
-            if (_timer >= damageDuration && explosionCollider != null)
-            {
-                explosionCollider.enabled = false;
-            }
+    private void OnTriggerEnter(Collider other)
+    {
+        // Ignore les triggers du joueur ou les contacts trop proches du spawn
+        if (other.CompareTag("Player")) return;
 
-            // Se désactive automatiquement dès que la particule a fini d'exécuter son animation
-            if (explosionParticles != null)
-            {
-                if (!explosionParticles.IsAlive(true))
-                {
-                    gameObject.SetActive(false);
-                }
-            }
-            else if (_timer >= 2f)
-            {
-                gameObject.SetActive(false);
-            }
+        if (!isExploding)
+        {
+            if (enableTimer < spawnImmunityTime) return;
+
+            ExecuteExplosion();
+            return;
         }
 
-        private void OnTriggerEnter(Collider otherCollider)
+        // Application des dégâts de zone si l'explosion est déjà active
+        if ((other.gameObject.CompareTag("Alien") || other.gameObject.CompareTag("AlienSpawn")) && isExploding)
         {
-            // Ignorer le joueur
-            if (otherCollider.CompareTag("Player") || otherCollider.gameObject.layer == LayerMask.NameToLayer("Player"))
+            Health healthComponent = other.gameObject.GetComponent<Health>();
+            if (healthComponent != null)
             {
-                return;
-            }
-
-            // Dégâts de zone simples
-            Health targetHealth = otherCollider.GetComponent<Health>();
-            if (targetHealth != null)
-            {
-                DamageInfo damage = new DamageInfo(explosionDamage, transform.position, Vector3.up, gameObject);
-                targetHealth.TakeDamage(damage);
+                DamageInfo damageInfo = new DamageInfo(damage, transform.position, Vector3.up, transform.root.gameObject);
+                healthComponent.TakeDamage(damageInfo);
             }
         }
+    }
+
+    private void ExecuteExplosion()
+    {
+        isExploding = true;
+
+        Rigidbody rb = GetComponentInParent<Rigidbody>();
+        if (rb != null)
+        {
+            rb.linearVelocity = Vector3.zero;
+        }
+
+        if (sphereCollider != null)
+        {
+            sphereCollider.enabled = true;
+        }
+
+        if (missileBody != null)
+        {
+            missileBody.SetActive(false);
+        }
+
+        StartCoroutine(PlayExplosionParticules());
+    }
+
+    private IEnumerator PlayExplosionParticules()
+    {
+        if (explosion != null)
+        {
+            explosion.Play();
+            yield return new WaitForSeconds(explosion.main.duration);
+        }
+        else
+        {
+            yield return new WaitForSeconds(0.5f);
+        }
+
+        if (sphereCollider != null)
+        {
+            sphereCollider.enabled = false;
+        }
+
+        transform.root.gameObject.SetActive(false);
     }
 }

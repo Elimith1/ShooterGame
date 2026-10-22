@@ -1,3 +1,6 @@
+using System.Collections;
+using System.Collections.Generic;
+using UI;
 using UnityEngine;
 
 namespace Player
@@ -8,6 +11,7 @@ namespace Player
         [SerializeField] private Transform firePoint;
         [SerializeField] private PlayerInputReader inputReader;
         [SerializeField] private PlayerInventory playerInventory;
+        [SerializeField] private HUDManager hudManager;
 
         [Header("Primary Fire")]
         [SerializeField] private GameObject bulletPrefab;
@@ -19,8 +23,13 @@ namespace Player
         [SerializeField] private float missileCooldown = 1.5f;
         [SerializeField] private int missilePoolSize = 10;
 
-        private GameObject[] _bulletPool;
-        private GameObject[] _missilePool;
+        // Utilisation de Listes
+        private List<GameObject> _bulletPool;
+        private List<GameObject> _missilePool;
+
+        // Index de parcours circulaire (Ring Buffer)
+        private int _bulletIndex;
+        private int _missileIndex;
 
         private float _nextFireTime;
         private float _nextMissileTime;
@@ -44,15 +53,24 @@ namespace Player
             InitializeMissilePool();
         }
 
+        private void Start()
+        {
+            if (hudManager != null)
+            {
+                hudManager.UpdateTripleShotTimer(0f);
+            }
+        }
+
         private void InitializeBulletPool()
         {
             if (bulletPrefab == null) return;
 
-            _bulletPool = new GameObject[bulletPoolSize];
+            _bulletPool = new List<GameObject>(bulletPoolSize);
             for (int i = 0; i < bulletPoolSize; i++)
             {
-                _bulletPool[i] = Instantiate(bulletPrefab);
-                _bulletPool[i].SetActive(false);
+                GameObject bullet = Instantiate(bulletPrefab);
+                bullet.SetActive(false);
+                _bulletPool.Add(bullet);
             }
         }
 
@@ -60,11 +78,12 @@ namespace Player
         {
             if (missilePrefab == null) return;
 
-            _missilePool = new GameObject[missilePoolSize];
+            _missilePool = new List<GameObject>(missilePoolSize);
             for (int i = 0; i < missilePoolSize; i++)
             {
-                _missilePool[i] = Instantiate(missilePrefab);
-                _missilePool[i].SetActive(false);
+                GameObject missile = Instantiate(missilePrefab);
+                missile.SetActive(false);
+                _missilePool.Add(missile);
             }
         }
 
@@ -72,18 +91,32 @@ namespace Player
         {
             UpdateMultishotTimer();
 
-            if (inputReader.IsFiring)
+            if (inputReader == null) return;
+
+            bool isFiringBullets = inputReader.IsFiring;
+            bool isFiringMissile = inputReader.IsMissileTriggered;
+
+            if (isFiringBullets && !isFiringMissile)
             {
                 if (Time.time >= _nextFireTime)
                 {
                     FireBullet();
                 }
             }
-            else if (inputReader.IsMissileTriggered)
+            else if (isFiringMissile && !isFiringBullets)
             {
                 if (Time.time >= _nextMissileTime)
                 {
                     FireMissile();
+                }
+
+                inputReader.ResetMissileTrigger();
+            }
+            else if (isFiringBullets && isFiringMissile)
+            {
+                if (Time.time >= _nextFireTime)
+                {
+                    FireBullet();
                 }
 
                 inputReader.ResetMissileTrigger();
@@ -95,10 +128,21 @@ namespace Player
             if (!_isMultishotActive) return;
 
             _multishotTimer -= Time.deltaTime;
+
+            if (hudManager != null)
+            {
+                hudManager.UpdateTripleShotTimer(_multishotTimer);
+            }
+
             if (_multishotTimer <= 0f)
             {
                 _isMultishotActive = false;
                 _multishotTimer = 0f;
+
+                if (hudManager != null)
+                {
+                    hudManager.UpdateTripleShotTimer(0f);
+                }
             }
         }
 
@@ -106,15 +150,14 @@ namespace Player
         {
             _nextFireTime = Time.time + fireRate;
 
-            if (firePoint == null || _bulletPool == null) return;
+            if (firePoint == null || _bulletPool == null || _bulletPool.Count == 0) return;
 
-            // Rotation centrale basée sur la direction du joueur
             Quaternion centerRotation = Quaternion.LookRotation(transform.root.forward);
 
-            // 1. Tir central
+            // Tir central
             SpawnBulletFromPool(firePoint.position, centerRotation);
 
-            // 2. Tirs latéraux si Multishot actif (-15° et +15°)
+            // Tirs latéraux si Multishot actif (-15° et +15°)
             if (_isMultishotActive)
             {
                 Quaternion leftRotation = centerRotation * Quaternion.Euler(0f, -15f, 0f);
@@ -134,7 +177,7 @@ namespace Player
 
             _nextMissileTime = Time.time + missileCooldown;
 
-            if (firePoint == null || _missilePool == null) return;
+            if (firePoint == null || _missilePool == null || _missilePool.Count == 0) return;
 
             if (playerInventory != null && !playerInventory.UseMissile())
             {
@@ -147,36 +190,50 @@ namespace Player
 
         private void SpawnBulletFromPool(Vector3 spawnPosition, Quaternion spawnRotation)
         {
-            for (int i = 0; i < _bulletPool.Length; i++)
-            {
-                if (_bulletPool[i] != null && !_bulletPool[i].activeInHierarchy)
-                {
-                    _bulletPool[i].transform.position = spawnPosition;
-                    _bulletPool[i].transform.rotation = spawnRotation;
-                    _bulletPool[i].SetActive(true);
-                    return;
-                }
-            }
+            // Récupération directe par index
+            GameObject bullet = _bulletPool[_bulletIndex];
+
+            // Réinitialisation si la balle était déjà active
+            bullet.SetActive(false);
+            bullet.transform.position = spawnPosition;
+            bullet.transform.rotation = spawnRotation;
+            bullet.SetActive(true);
+
+            // Incrémentation circulaire de l'index
+            _bulletIndex = (_bulletIndex + 1) % _bulletPool.Count;
         }
 
         private void SpawnMissileFromPool(Vector3 spawnPosition, Quaternion spawnRotation)
         {
-            for (int i = 0; i < _missilePool.Length; i++)
-            {
-                if (_missilePool[i] != null && !_missilePool[i].activeInHierarchy)
-                {
-                    _missilePool[i].transform.position = spawnPosition;
-                    _missilePool[i].transform.rotation = spawnRotation;
-                    _missilePool[i].SetActive(true);
-                    return;
-                }
-            }
+            // Récupération directe par index
+            GameObject missile = _missilePool[_missileIndex];
+
+            // Réinitialisation si le missile était déjà actif
+            missile.SetActive(false);
+            missile.transform.position = spawnPosition;
+            missile.transform.rotation = spawnRotation;
+            missile.SetActive(true);
+
+            // Incrémentation circulaire de l'index
+            _missileIndex = (_missileIndex + 1) % _missilePool.Count;
         }
 
         public void ActivateMultishot(float duration)
         {
-            _multishotTimer = duration;
-            _isMultishotActive = true;
+            if (_isMultishotActive)
+            {
+                _multishotTimer += duration;
+            }
+            else
+            {
+                _multishotTimer = duration;
+                _isMultishotActive = true;
+            }
+
+            if (hudManager != null)
+            {
+                hudManager.UpdateTripleShotTimer(_multishotTimer);
+            }
         }
     }
 }

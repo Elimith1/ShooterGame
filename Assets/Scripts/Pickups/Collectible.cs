@@ -34,7 +34,6 @@ namespace Pickups
             }
         }
 
-        // Chaque type de bonus définira ce qu'il fait ici
         protected abstract void OnCollect(GameObject player);
     }
 }

@@ -6,83 +6,80 @@ namespace Player
     public class PlayerMovement : MonoBehaviour
     {
         [Header("Settings")]
-        [SerializeField] private float moveSpeed = 18f;
-        [SerializeField] private float rotationSpeed = 12f;
-        [SerializeField] private float jumpHeight = 6f;
-        [SerializeField] private float gravity = -25f;
-        [SerializeField] private float groundedGravity = -2f;
+        [SerializeField] private float speed = 15f;
+        [SerializeField] private float jumpSpeed = 23f;
+        [SerializeField] private float gravity = 30f;
+        [SerializeField] private float rotationTime = 0.1f;
 
         [Header("References")]
-        [SerializeField] private CharacterController controller;
-        [SerializeField] private Transform cameraTransform;
+        [SerializeField] private CharacterController characterController;
+        [SerializeField] private Transform mainCamera;
         [SerializeField] private PlayerInputReader inputReader;
 
-        private float _verticalVelocity;
+        private Vector2 _moveValue;
+        private Vector3 _movementDirection;
+        private float _rotationVelocity;
+        private float _verticalMovement = 0f;
 
         private void Awake()
         {
-            if (controller == null) controller = GetComponent<CharacterController>();
+            if (characterController == null) characterController = GetComponent<CharacterController>();
             if (inputReader == null) inputReader = GetComponent<PlayerInputReader>();
-            if (cameraTransform == null && Camera.main != null) cameraTransform = Camera.main.transform;
+            if (mainCamera == null && Camera.main != null) mainCamera = Camera.main.transform;
         }
 
         private void Update()
         {
-            HandleMovement();
+            _moveValue = inputReader.MoveInput;
+
+            HandleGroundMovement();
+            HandleVerticalMovement();
+
+            characterController.Move(_movementDirection);
         }
 
-        private void HandleMovement()
+        private void HandleGroundMovement()
         {
-            bool isGrounded = controller.isGrounded;
+            /*Demandé à gemini: normaliser la direction du mouvement du joueur*/
+            _movementDirection = new Vector3(_moveValue.x, 0f, _moveValue.y);
 
-            if (isGrounded && _verticalVelocity < 0)
+            if (_movementDirection.magnitude > 1.0f) _movementDirection = _movementDirection.normalized;
+
+            if (_movementDirection.magnitude >= 0.1f)
             {
-                _verticalVelocity = groundedGravity;
+                float targetAngle = Mathf.Atan2(_movementDirection.x, _movementDirection.z) * Mathf.Rad2Deg + mainCamera.eulerAngles.y;
+                float angle = Mathf.SmoothDampAngle(transform.eulerAngles.y, targetAngle, ref _rotationVelocity, rotationTime);
+
+                transform.rotation = Quaternion.Euler(0f, angle, 0f);
+
+                float tempSpeed = speed;
+                if (!characterController.isGrounded) tempSpeed /= 2;
+
+                Vector3 directionWithCamera = (Quaternion.Euler(0f, angle, 0f) * Vector3.forward).normalized;
+                float originalMovementMagnitude = _movementDirection.magnitude;
+                _movementDirection.x = directionWithCamera.x * tempSpeed * originalMovementMagnitude * Time.deltaTime;
+                _movementDirection.z = directionWithCamera.z * tempSpeed * originalMovementMagnitude * Time.deltaTime;
             }
-
-            // Récupération du Vector2 mis à jour dans PlayerInputReader
-            Vector2 input = inputReader.MoveInput;
-
-            // Calcul du déplacement selon la caméra
-            Vector3 forward = cameraTransform.forward;
-            Vector3 right = cameraTransform.right;
-            forward.y = 0f;
-            right.y = 0f;
-            forward.Normalize();
-            right.Normalize();
-
-            Vector3 moveDirection = forward * input.y + right * input.x;
-
-            if (moveDirection.magnitude > 1f)
+            else
             {
-                moveDirection.Normalize();
+                _movementDirection = Vector3.zero;
             }
+        }
 
-            // Application du mouvement horizontal selon la direction calculée
-            controller.Move(moveDirection * (moveSpeed * Time.deltaTime));
+        private void HandleVerticalMovement()
+        {
+            if (!characterController.isGrounded)
+                _verticalMovement -= gravity * Time.deltaTime;
 
-            // Rotation du joueur dans la direction du mouvement
-            if (moveDirection.sqrMagnitude > 0.01f)
-            {
-                Quaternion targetRotation = Quaternion.LookRotation(moveDirection);
-                transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, rotationSpeed * Time.deltaTime);
-            }
-
-            // 3. Gestion du saut
             if (inputReader.JumpTriggered)
             {
-                if (isGrounded)
-                {
-                    _verticalVelocity = Mathf.Sqrt(2f * jumpHeight * -gravity);
-                }
-                
-                // On réinitialise l'état du saut
+                if (characterController.isGrounded)
+                    _verticalMovement = jumpSpeed;
+
                 inputReader.ResetJumpTrigger();
             }
 
-            // Application de la gravité et mouvement vertical
-            _verticalVelocity += gravity * Time.deltaTime;
-            controller.Move(new Vector3(0f, _verticalVelocity, 0f) * Time.deltaTime);
+            _movementDirection.y = _verticalMovement * Time.deltaTime;
         }
     }
 }

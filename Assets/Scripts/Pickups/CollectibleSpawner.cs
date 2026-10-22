@@ -1,24 +1,27 @@
+using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace Pickups
 {
     public class CollectibleSpawner : MonoBehaviour
     {
-        [Header("Chance Settings")]
-        [Tooltip("1 chance sur dropChanceDenominator de faire apparaître un item")]
         [SerializeField] private int dropChanceDenominator = 15;
 
         [Header("Prefabs des Collectibles")]
         [SerializeField] private GameObject healPrefab;
         [SerializeField] private GameObject multishotPrefab;
         [SerializeField] private GameObject missileSupplyPrefab;
-
-        [Header("Taille des Pools")]
         [SerializeField] private int poolSizePerType = 5;
 
-        private GameObject[] _healPool;
-        private GameObject[] _multishotPool;
-        private GameObject[] _missilePool;
+        private List<GameObject> _healPool;
+        private List<GameObject> _multishotPool;
+        private List<GameObject> _missilePool;
+
+        // Index de parcours circulaire pour chaque pool
+        private int _healIndex;
+        private int _multishotIndex;
+        private int _missileIndex;
 
         private void Awake()
         {
@@ -32,17 +35,19 @@ namespace Pickups
             _missilePool = CreatePool(missileSupplyPrefab);
         }
 
-        private GameObject[] CreatePool(GameObject prefab)
+        private List<GameObject> CreatePool(GameObject prefab)
         {
-            if (prefab == null) return new GameObject[0];
+            List<GameObject> pool = new List<GameObject>(poolSizePerType);
 
-            GameObject[] pool = new GameObject[poolSizePerType];
+            if (prefab == null) return pool;
+
             for (int i = 0; i < poolSizePerType; i++)
             {
                 GameObject obj = Instantiate(prefab, transform);
                 obj.SetActive(false);
-                pool[i] = obj;
+                pool.Add(obj);
             }
+
             return pool;
         }
 
@@ -53,33 +58,36 @@ namespace Pickups
             if (randomRoll == 1)
             {
                 int typeRoll = Random.Range(0, 3);
-                GameObject[] targetPool = null;
 
                 switch (typeRoll)
                 {
-                    case 0: targetPool = _healPool; break;
-                    case 1: targetPool = _multishotPool; break;
-                    case 2: targetPool = _missilePool; break;
+                    case 0:
+                        SpawnFromPool(_healPool, ref _healIndex, position);
+                        break;
+                    case 1:
+                        SpawnFromPool(_multishotPool, ref _multishotIndex, position);
+                        break;
+                    case 2:
+                        SpawnFromPool(_missilePool, ref _missileIndex, position);
+                        break;
                 }
-
-                SpawnFromPool(targetPool, position);
             }
         }
 
-        private void SpawnFromPool(GameObject[] pool, Vector3 position)
+        private void SpawnFromPool(List<GameObject> pool, ref int index, Vector3 position)
         {
-            if (pool == null) return;
+            if (pool == null || pool.Count == 0) return;
 
-            for (int i = 0; i < pool.Length; i++)
-            {
-                if (!pool[i].activeInHierarchy)
-                {
-                    pool[i].transform.position = position;
-                    pool[i].transform.rotation = Quaternion.identity;
-                    pool[i].SetActive(true);
-                    break;
-                }
-            }
+            // Récupération directe par index
+            GameObject item = pool[index];
+
+            item.SetActive(false);
+            item.transform.position = position;
+            item.transform.rotation = Quaternion.identity;
+            item.SetActive(true);
+
+            // Incrémentation circulaire de l'index
+            index = (index + 1) % pool.Count;
         }
     }
 }
