@@ -5,11 +5,8 @@ namespace Core
 {
     public class Health : MonoBehaviour, IDamageable
     {
-        [Header("Settings")]
         [SerializeField] private int initialHealth = 10;
         [SerializeField] private float invulnerabilityDuration = 0.5f;
-
-        [Header("References")]
         [SerializeField] private HUDManager hudManager;
 
         public int CurrentHealth { get; private set; }
