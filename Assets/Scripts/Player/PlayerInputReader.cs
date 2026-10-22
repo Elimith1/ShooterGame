@@ -20,7 +20,7 @@ namespace Player
         public bool IsFiring => isFiring;
         public bool IsMissileTriggered => isMissileTriggered;
 
-        private void Start()
+        private void Awake()
         {
             moveAction = InputSystem.actions.FindAction("Move");
             jumpAction = InputSystem.actions.FindAction("Jump");
@@ -34,10 +34,8 @@ namespace Player
 
             if (jumpAction != null && jumpAction.triggered) jumpTriggered = true;
 
-            // Tir continu tant que le bouton reste enfoncé
             if (fireAction != null) isFiring = fireAction.IsPressed();
 
-            // Pression unique pour le missile
             if (missileAction != null && missileAction.triggered) isMissileTriggered = true;
         }
 
